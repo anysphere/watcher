@@ -23,9 +23,12 @@
     "wrapper.js",
     "package.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "src",
+    "binding.gyp"
   ],
   "scripts": {
+    "install": "node-gyp-build",
     "prebuild": "prebuildify --napi --strip --tag-libc",
     "format": "prettier --write \"./**/*.{js,json,md}\"",
     "build": "node-gyp rebuild -j 8 --debug --verbose",
