@@ -49,6 +49,7 @@
     ]
   },
   "dependencies": {
+    "node-gyp-build": "^4.8.1",
     "detect-libc": "^1.0.3",
     "is-glob": "^4.0.3",
     "micromatch": "^4.0.5",
