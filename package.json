@@ -29,7 +29,6 @@
     "binding.gyp"
   ],
   "scripts": {
-    "install": "node-gyp rebuild",
     "prebuild": "prebuildify --napi --strip --tag-libc",
     "format": "prettier --write \"./**/*.{js,json,md}\"",
     "build": "node-gyp rebuild",
@@ -51,7 +50,6 @@
     ]
   },
   "dependencies": {
-    "node-gyp": "^9.4.1",
     "detect-libc": "^2.0.3",
     "is-glob": "^4.0.3",
     "micromatch": "^4.0.5",
