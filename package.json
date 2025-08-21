@@ -1,6 +1,6 @@
 {
   "name": "@parcel/watcher",
-  "version": "2.4.2-cursor",
+  "version": "2.5.1-cursor",
   "main": "index.js",
   "types": "index.d.ts",
   "repository": {
@@ -25,13 +25,15 @@
     "README.md",
     "LICENSE",
     "src",
+    "scripts/build-from-source.js",
     "binding.gyp"
   ],
   "scripts": {
     "install": "node-gyp rebuild",
     "prebuild": "prebuildify --napi --strip --tag-libc",
     "format": "prettier --write \"./**/*.{js,json,md}\"",
-    "build": "node-gyp rebuild -j 8 --debug --verbose",
+    "build": "node-gyp rebuild",
+    "install": "node scripts/build-from-source.js",
     "test": "mocha"
   },
   "engines": {
@@ -50,7 +52,7 @@
   },
   "dependencies": {
     "node-gyp": "^9.4.1",
-    "detect-libc": "^1.0.3",
+    "detect-libc": "^2.0.3",
     "is-glob": "^4.0.3",
     "micromatch": "^4.0.5",
     "node-addon-api": "^7.0.0"

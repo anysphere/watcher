@@ -49,6 +49,11 @@ const triples = [
     libc: 'glibc'
   },
   {
+    platform: 'linux',
+    arch: 'arm',
+    libc: 'musl'
+  },
+  {
     platform: 'android',
     arch: 'arm64'
   },
@@ -80,7 +85,7 @@ try {
   fs.mkdirSync(dir + '/npm/watcher');
 } catch (err) { }
 for (let file of pkg.files) {
-  fs.copyFileSync(`${dir}/${file}`, `npm/watcher/${file}`);
+  fs.cpSync(`${dir}/${file}`, `npm/watcher/${file}`, {recursive: true});
 }
 pkg.optionalDependencies = optionalDependencies;
 fs.writeFileSync(`${dir}/npm/watcher/package.json`, JSON.stringify(pkg, false, 2) + '\n');
