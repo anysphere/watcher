@@ -2,6 +2,7 @@
 #define WATCHER_H
 
 #include <condition_variable>
+#include <mutex>
 #include <unordered_set>
 #include <set>
 #include <node_api.h>

@@ -210,8 +210,11 @@ void checkWatcher(WatcherRef watcher) {
   }
 }
 
-void FSEventsBackend::startStream(WatcherRef watcher, FSEventStreamEventId id) {
+void FSEventsBackend::startStream(WatcherRef watcher, std::shared_ptr<WatcherState> state, FSEventStreamEventId id) {
   checkWatcher(watcher);
+
+  State* s = static_cast<State*>(state.get());
+  s->tree = std::make_shared<DirTree>(watcher->mDir);
 
   CFAbsoluteTime latency = 0.001;
   CFStringRef fileWatchPath = CFStringCreateWithCString(
@@ -264,9 +267,6 @@ void FSEventsBackend::startStream(WatcherRef watcher, FSEventStreamEventId id) {
     throw WatcherError("Error starting FSEvents stream", watcher);
   }
 
-  auto stateGuard = watcher->state;
-  State* s = static_cast<State*>(stateGuard.get());
-  s->tree = std::make_shared<DirTree>(watcher->mDir);
   s->stream = stream;
 }
 
@@ -322,7 +322,7 @@ void FSEventsBackend::getEventsSince(WatcherRef watcher, std::string *snapshotPa
     watcher->state = s;
   }
 
-  startStream(watcher, id);
+  startStream(watcher, s, id);
   watcher->wait();
   stopStream(s->stream, mRunLoop);
 
@@ -340,7 +340,7 @@ void FSEventsBackend::subscribe(WatcherRef watcher) {
     std::lock_guard<std::mutex> lock(watcher->mStateMutex);
     watcher->state = s;
   }
-  startStream(watcher, kFSEventStreamEventIdSinceNow);
+  startStream(watcher, s, kFSEventStreamEventIdSinceNow);
 }
 
 // This function is called by Backend::unwatch which takes a lock on mMutex
@@ -349,7 +349,6 @@ void FSEventsBackend::unsubscribe(WatcherRef watcher) {
   {
     std::lock_guard<std::mutex> lock(watcher->mStateMutex);
     stateGuard = std::move(watcher->state);
-    watcher->state = nullptr;
   }
 
   State* s = static_cast<State*>(stateGuard.get());
