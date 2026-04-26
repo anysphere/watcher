@@ -13,7 +13,7 @@ public:
   void subscribe(WatcherRef watcher) override;
   void unsubscribe(WatcherRef watcher) override;
 private:
-  void startStream(WatcherRef watcher, FSEventStreamEventId id);
+  void startStream(WatcherRef watcher, std::shared_ptr<WatcherState> state, FSEventStreamEventId id);
   CFRunLoopRef mRunLoop;
 };
 

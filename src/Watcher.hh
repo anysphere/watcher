@@ -2,6 +2,7 @@
 #define WATCHER_H
 
 #include <condition_variable>
+#include <mutex>
 #include <unordered_set>
 #include <set>
 #include <node_api.h>
@@ -33,6 +34,7 @@ struct Watcher {
   std::unordered_set<Glob> mIgnoreGlobs;
   EventList mEvents;
   std::shared_ptr<WatcherState> state;
+  std::mutex mStateMutex;
 
   Watcher(std::string dir, std::unordered_set<std::string> ignorePaths, std::unordered_set<Glob> ignoreGlobs);
   ~Watcher();
