@@ -33,6 +33,7 @@ struct Watcher {
   std::unordered_set<Glob> mIgnoreGlobs;
   EventList mEvents;
   std::shared_ptr<WatcherState> state;
+  std::mutex mStateMutex;
 
   Watcher(std::string dir, std::unordered_set<std::string> ignorePaths, std::unordered_set<Glob> ignoreGlobs);
   ~Watcher();

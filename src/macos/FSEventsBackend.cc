@@ -57,11 +57,17 @@ void FSEventsCallback(
   std::shared_ptr<Watcher>& watcher = *static_cast<std::shared_ptr<Watcher> *>(clientCallBackInfo);
 
   EventList& list = watcher->mEvents;
-  if (watcher->state == nullptr) {
-      return;
+
+  std::shared_ptr<WatcherState> stateGuard;
+  {
+    std::lock_guard<std::mutex> lock(watcher->mStateMutex);
+    stateGuard = watcher->state;
   }
 
-  auto stateGuard = watcher->state;
+  if (!stateGuard) {
+    return;
+  }
+
   auto* state = static_cast<State*>(stateGuard.get());
   uint64_t since = state->since;
   bool deletedRoot = false;
@@ -188,6 +194,7 @@ void FSEventsCallback(
   // Stop watching if the root directory was deleted.
   if (deletedRoot) {
     stopStream((FSEventStreamRef)streamRef, CFRunLoopGetCurrent());
+    std::lock_guard<std::mutex> lock(watcher->mStateMutex);
     watcher->state = nullptr;
   }
 }
@@ -310,29 +317,43 @@ void FSEventsBackend::getEventsSince(WatcherRef watcher, std::string *snapshotPa
 
   auto s = std::make_shared<State>();
   s->since = since;
-  watcher->state = s;
+  {
+    std::lock_guard<std::mutex> lock(watcher->mStateMutex);
+    watcher->state = s;
+  }
 
   startStream(watcher, id);
   watcher->wait();
   stopStream(s->stream, mRunLoop);
 
-  watcher->state = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(watcher->mStateMutex);
+    watcher->state = nullptr;
+  }
 }
 
 // This function is called by Backend::watch which takes a lock on mMutex
 void FSEventsBackend::subscribe(WatcherRef watcher) {
   auto s = std::make_shared<State>();
   s->since = 0;
-  watcher->state = s;
+  {
+    std::lock_guard<std::mutex> lock(watcher->mStateMutex);
+    watcher->state = s;
+  }
   startStream(watcher, kFSEventStreamEventIdSinceNow);
 }
 
 // This function is called by Backend::unwatch which takes a lock on mMutex
 void FSEventsBackend::unsubscribe(WatcherRef watcher) {
-  auto stateGuard = watcher->state;
+  std::shared_ptr<WatcherState> stateGuard;
+  {
+    std::lock_guard<std::mutex> lock(watcher->mStateMutex);
+    stateGuard = std::move(watcher->state);
+    watcher->state = nullptr;
+  }
+
   State* s = static_cast<State*>(stateGuard.get());
   if (s != nullptr) {
     stopStream(s->stream, mRunLoop);
-    watcher->state = nullptr;
   }
 }
