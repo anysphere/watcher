@@ -47,6 +47,24 @@
             "WATCHMAN",
             "INOTIFY",
             "BRUTE_FORCE"
+          ],
+          # Hide all symbols except the N-API module registration (which
+          # node_api.h marks with default visibility). Without this, weak
+          # libstdc++ template instantiations (e.g. std::regex internals)
+          # are exported and resolved through the PLT, so the dynamic linker
+          # can bind them to copies exported by the node executable
+          # (linked -rdynamic). Node >= 22 exports std::__detail regex
+          # symbols compiled with a newer GCC than our prebuild sysroot;
+          # mixing the two instantiations corrupts the regex state machine
+          # and SIGSEGVs in Glob::Glob when an ignore glob is compiled.
+          # -Bsymbolic-functions additionally binds any remaining exported
+          # function symbols to the local definitions at link time.
+          "cflags_cc": [
+            "-fvisibility=hidden",
+            "-fvisibility-inlines-hidden"
+          ],
+          "ldflags": [
+            "-Wl,-Bsymbolic-functions"
           ]
         }],
         ['OS=="win"', {
